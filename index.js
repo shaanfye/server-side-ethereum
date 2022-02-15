@@ -109,18 +109,39 @@ const output_swap = async (
       .create({
         body: `ShaanBot: Just now ${f_0in} dollars were sold in order to buy ${f_1out} of weth. We only do big money.`,
         from: "+18486005188",
-        to: "+19292139458",
+        to: "+13472828246",
       })
       .then((message) => console.log(message.sid));
   }
   return [f_0in, f_0out, f_1in, f_1out];
 };
 
+// get every transfer event from a given token
+const get_transfer = async (contract) => {
+  filter = {
+    address: contract,
+    topics: [
+      ethers.utils.id("Transfer(address,address,uint256)"),
+  ],
+}
+  provider.on(filter, (log, event) => {
+    // Emitted whenever a DAI token transfer occurs
+    console.log(log);
+  })
+}
+
 const main = async () => {
   const [token0deci, token1deci, name0, name1] = await get_pair_deci(contract_eth);
-  // console.log(token0deci, token1deci);
   
+  // connects to mongo
   await connect_mdb();
+
+  // each time new block occurs
+  provider.on("block", (blocknumber) => console.log(blocknumber));
+
+  // testing within a new function - this awaits the on function continueing to run
+  await get_transfer("0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0");
+  
   contract_eth.on(
     "Swap",
     async (sender, amount0In, amount1In, amount0Out, amount1Out, to) =>{
